@@ -26,7 +26,7 @@ class RoyalMail extends Base
     protected $manifestDoneDir = null;
 
     /**
-     * Directory to store pending mansifests in
+     * Directory to store pending manifests in
      * @var null
      */
     protected $manifestPendingDir = null;
@@ -45,21 +45,8 @@ class RoyalMail extends Base
      */
     public function exportConsignment($package, $customer)
     {
-        // Should be called as a queue job on end of day
-
-        if (empty($this->manifest)) {
-            return true; // Nothing to process, exit
-        }
-
-        $todaysManifest = [];
-        // Perform some sanitisation
-        foreach ($this->manifest as $consignmentNo => $time) {
-            if ($time < strtotime('-1 day')) {
-                continue;
-            }
-
-            $todaysManifest[] = [
-                $consignmentNo,
+        return $this->manifest[] = [$package->consignmentNumber => [
+                $this->generateConsignmentNumber(),
                 $this->customerNumber,
                 $package->address()->title,
                 $package->address()->firstName,
@@ -70,7 +57,25 @@ class RoyalMail extends Base
                 $package->address()->town,
                 $package->address()->county,
                 $package->address()->postcode,
-            ];
+            ]
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function pushConsignments()
+    {
+        // Should be called as a queue job on end of day
+
+        if (empty($this->manifest)) {
+            return true; // Nothing to process, exit
+        }
+
+        $todaysManifest = [];
+        // Perform some sanitisation
+        foreach ($this->manifest as $consignmentNo => $info) {
+            $todaysManifest[] = [$consignmentNo] += $info;
         }
 
         // Turn in to a csv. Nice and crudely does it
@@ -100,6 +105,11 @@ class RoyalMail extends Base
         }
 
         return true;
+    }
+
+    private function generateConsignmentNumber()
+    {
+        return $this->app->soapRequest('http://royalmail.com/getconsignmentnumber/', ['customerId' => $this->customerNumber])->result();
     }
 
 }
