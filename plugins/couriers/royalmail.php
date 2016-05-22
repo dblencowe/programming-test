@@ -1,6 +1,6 @@
 <?php
 
-namespace Docnet\Plugins\Shipping;
+namespace Docnet\Plugins\Couriers;
 
 use Docnet\Plugins\Base;
 
@@ -43,7 +43,7 @@ class RoyalMail extends Base
     /**
      * @inheritdoc
      */
-    public function exportConsignment($package, $customer)
+    public function addToManifest($order, $package, $customer)
     {
         return $this->manifest[] = [$package->consignmentNumber => [
                 $this->generateConsignmentNumber(),
@@ -88,6 +88,12 @@ class RoyalMail extends Base
         return $this->sendConsignmentFiles();
     }
 
+    /**
+     * Loop over consignments, sanity check and then upload finalised CSV to RM
+     *
+     * @return bool true for success, anything else is an error
+     * @throws \Exception Errors whilst sending consignments
+     */
     private function sendConsignmentFiles()
     {
         $files = Utility::readDir($this->manifestPendingDir);
@@ -100,8 +106,11 @@ class RoyalMail extends Base
         foreach ($files as $file) {
             $rst = $connection->upload($file);
             if (!empty($rst)) {
-                throw new Exception("Error uploading $file to royalmail: " . json_encode($rst));
+                throw new \Exception("Error uploading $file to royalmail: " . json_encode($rst));
             }
+
+            // Move to done folder
+            rename($file, $this->manifestDoneDir . array_pop(explode('/', $file)));
         }
 
         return true;

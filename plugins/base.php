@@ -20,18 +20,6 @@ abstract class Base
     }
 
     /**
-     * Break down the class name into parts
-     *
-     * @return array Parts of the class name
-     */
-    private function _getClassNameParts()
-    {
-        $className = get_class($this);
-        $className = substr($className, (strpos($className, 'Plugins\\')+strlen('Plugins\\')));
-        return explode('\\', $className);
-    }
-
-    /**
      * Base function which child classes can use to run things after the main constructor has run
      */
     protected function _init()

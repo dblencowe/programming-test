@@ -4,32 +4,24 @@ namespace \Docnet\Plugins\Shipping;
 
 class Base extends \Docnet\Plugins\Base
 {
-    public $features = [
-        'labelFormat' => 'png',
-        'transportMethod' => false,
-    ];
+    public $manifests = null;
 
     /**
-     * Export consigments for the external shipping solution
-     *
-     * @param array $order    Order details
-     * @param array $package  Package details
-     * @param array $customer Customer details
-     *
-     * @return array Tracking info (if any)
+     * Run any start of day functions
      */
-    public function exportConsignment($package, $customer)
+    public function startBatch()
     {
-        return [];
+
     }
 
     /**
-     * Push consignments to external solution
-     *
-     * @return void
+     * Clear any manifests for the day
      */
-    public function pushConsignments()
+    public function endBatch()
     {
+        // Push consignments to third party and
+        $this->pushConsignments();
+        $this->manifests = null;
     }
 
     /**
@@ -45,16 +37,16 @@ class Base extends \Docnet\Plugins\Base
      */
     public function addToManifest($order, $package, $customer)
     {
+
     }
 
     /**
-     * Complete current manifest(s)
+     * Push consignments to external solution
      *
-     * @return array Array of manifested consignment ids keyed by manifest id
+     * @return void
      */
-    public function completeManifests()
+    private function pushConsignments()
     {
-        return [];
     }
 
     /**
